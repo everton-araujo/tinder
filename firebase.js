@@ -5,14 +5,16 @@ import { getFirestore } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
+import config from './config';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBCBYIoZnAA_6qXIN_a2P75gRIvSLa5T18",
+  apiKey: config.FIREBASE_API_KEY,
   authDomain: "tinder-app-yt.firebaseapp.com",
   projectId: "tinder-app-yt",
   storageBucket: "tinder-app-yt.appspot.com",
-  messagingSenderId: "752917325907",
-  appId: "1:752917325907:web:2467bacb43b34dbc413ea6"
+  messagingSenderId: config.FIREBASE_MESSAGING_SENDER_ID,
+  appId: config.FIREBASE_AP_ID
 };
 
 // Initialize Firebase
