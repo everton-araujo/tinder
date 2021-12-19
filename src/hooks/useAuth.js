@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { 
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState 
+} from 'react';
 import * as Google from 'expo-google-app-auth';
 import {
   GoogleAuthProvider,
@@ -61,15 +67,19 @@ export const AuthProvider = ({ children }) => {
     .finally(() => setLoading(false));
   }
 
+  const memoedValue = useMemo(() => ({
+    user,
+    loading,
+    error,
+    logout,
+    signInWithGoogle
+  }), [user, loading, error]);
+
+  console.log('Aqui', memoedValue);
+
   return (
-    <AuthContext.Provider 
-      value={{
-        user,
-        loading,
-        error,
-        logout,
-        signInWithGoogle
-      }}
+    <AuthContext.Provider  
+      value={memoedValue}
     >
       { !loadingInitial && children }
     </AuthContext.Provider>
