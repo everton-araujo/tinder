@@ -75,8 +75,6 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle
   }), [user, loading, error]);
 
-  console.log('Aqui', memoedValue);
-
   return (
     <AuthContext.Provider  
       value={memoedValue}
