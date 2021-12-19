@@ -12,7 +12,9 @@ export function StackNavigator() {
   const { user } = useAuth();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{
+      headerShown: false
+    }}>
       {
         !user
         ? (

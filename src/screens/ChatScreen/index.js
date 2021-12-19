@@ -1,12 +1,18 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { SafeAreaView, Text, StatusBar, Platform } from 'react-native';
 
 export function ChatScreen() {
   return (
-    <View>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: '#FFF',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+      }}
+    >
       <Text>
         Chat Screen
       </Text>
-    </View>
+    </SafeAreaView>
   )
 }
