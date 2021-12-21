@@ -62,6 +62,10 @@ export function HomeScreen() {
     navigation.navigate('Chat');
   }
 
+  function handleOpenModal() {
+    navigation.navigate('Modal');
+  }
+
   // TODO 
   // Make this function call an Alert to confirm the logout
   function handleLogout() {
@@ -97,7 +101,7 @@ export function HomeScreen() {
           />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleOpenModal} >
           <Image 
             source={require('../../assets/logo.jpg')}
             style={tw('h-14 w-12')}
