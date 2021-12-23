@@ -14,7 +14,15 @@ import {
 import tw from 'tailwind-rn';
 import { AntDesign, Entypo, Ionicons } from '@expo/vector-icons';
 import Swiper from 'react-native-deck-swiper';
-import { onSnapshot, doc, collection } from '@firebase/firestore';
+import { 
+  onSnapshot, 
+  doc, 
+  collection, 
+  setDoc, 
+  query, 
+  where, 
+  getDocs 
+} from '@firebase/firestore';
 
 import useAuth from '../../hooks/useAuth';
 import { db } from '../../../firebase';
@@ -86,6 +94,24 @@ export function HomeScreen() {
     );
   }
 
+  function handleSwipeLeft(cardIndex) {
+    if (!profiles[cardIndex]) return;
+
+    const userSwiped = profiles[cardIndex];
+    console.log(`You swiped PASS on ${userSwiped.displayName}`);
+
+    setDoc(doc(db, 'user', user.uid, 'passes', userSwiped.id), userSwiped);
+  }
+
+  function handleSwipeRight(cardIndex) {
+    if (!profiles[cardIndex]) return;
+
+    const userSwiped = profiles[cardIndex];
+    console.log(`You swiped on ${userSwiped.displayName} (${userSwiped.job})`);
+    
+    setDoc(doc(db, 'user', user.uid, 'swipes', userSwiped.id), userSwiped);
+  }
+
   useLayoutEffect(
     () =>
       onSnapshot(doc(db, 'user', user.uid), (snapshot) => {
@@ -100,17 +126,33 @@ export function HomeScreen() {
     let unsub;
 
     const fetchCards = async () => {
-      unsub = onSnapshot(collection(db, 'user'), snapshot => {
-        setProfiles(snapshot.docs.filter(doc => doc.id !== user.uid).map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })))
-      })
+      const passes = await getDocs(collection(db, 'user', user.uid, 'passes'))
+        .then(snapshot => snapshot.docs.map((doc) => doc.id)
+      );
+
+      const swipes = await getDocs(collection(db, 'user', user.uid, 'swipes'))
+        .then(snapshot => snapshot.docs.map((doc) => doc.id)
+      );
+
+      const passedUserIds = passes.length > 0 ? passes : ['empty'];
+      const swipedUserIds = swipes.length > 0 ? swipes : ['empty'];
+
+      console.log([...passedUserIds, ...swipedUserIds]);
+
+      unsub = onSnapshot(
+        query(collection(db, 'user'), where('id', 'not-in', [...passedUserIds, ...swipedUserIds])), 
+          snapshot => {
+            setProfiles(snapshot.docs.filter(doc => doc.id !== user.uid).map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })))
+          }
+      )
     }
 
     fetchCards();
     return unsub;
-  }, []);
+  }, [db]);
 
   return (
     <SafeAreaView
@@ -154,11 +196,13 @@ export function HomeScreen() {
           cardIndex={0}
           animateCardOpacity
           verticalSwipe={false}
-          onSwipedLeft={() => {
+          onSwipedLeft={(cardIndex) => {
             console.log('Swipe PASS');
+            handleSwipeLeft(cardIndex);
           }}
-          onSwipedRight={() => {
+          onSwipedRight={(cardIndex) => {
             console.log('Swipe MATCH');
+            handleSwipeRight(cardIndex);
           }}
           overlayLabels={{
             left: {
