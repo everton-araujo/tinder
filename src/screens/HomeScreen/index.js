@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { 
   Alert,
-  Button, 
   Image, 
   Platform, 
   SafeAreaView, 
@@ -15,8 +14,10 @@ import {
 import tw from 'tailwind-rn';
 import { AntDesign, Entypo, Ionicons } from '@expo/vector-icons';
 import Swiper from 'react-native-deck-swiper';
+import { onSnapshot, doc, collection } from '@firebase/firestore';
 
 import useAuth from '../../hooks/useAuth';
+import { db } from '../../../firebase';
 
 const DUMMY_DATA = [
   {
@@ -56,6 +57,7 @@ const DUMMY_DATA = [
 export function HomeScreen() {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const [profiles, setProfiles] = useState([]);
   const swipeRef = useRef(null);
 
   function handleGoToChat() {
@@ -84,11 +86,36 @@ export function HomeScreen() {
     );
   }
 
+  useLayoutEffect(
+    () =>
+      onSnapshot(doc(db, 'user', user.uid), (snapshot) => {
+        if (!snapshot.exists()) {
+          navigation.navigate('Modal');
+        }
+      }),
+    []
+  );
+
+  useEffect(() => {
+    let unsub;
+
+    const fetchCards = async () => {
+      unsub = onSnapshot(collection(db, 'user'), snapshot => {
+        setProfiles(snapshot.docs.filter(doc => doc.id !== user.uid).map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })))
+      })
+    }
+
+    fetchCards();
+    return unsub;
+  }, []);
+
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: '#FFF',
         paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
       }}
     >
@@ -122,7 +149,7 @@ export function HomeScreen() {
         <Swiper
           ref={swipeRef}
           containerStyle={{ backgroundColor: 'transparent'}}
-          cards={DUMMY_DATA} 
+          cards={profiles}
           stackSize={5}
           cardIndex={0}
           animateCardOpacity
@@ -152,7 +179,7 @@ export function HomeScreen() {
               }
             }
           }}
-          renderCard={(card) => (
+          renderCard={(card) => card ? (
             <View
               key={card.id}
               style={tw('relative bg-white h-3/4 rounded-xl')}
@@ -170,10 +197,10 @@ export function HomeScreen() {
               >
                 <View>
                   <Text style={tw('text-xl font-bold')}>
-                    {card.firstName} {card.lastName}
+                    {card.displayName}
                   </Text>
                   <Text>
-                    {card.occupation}
+                    {card.job}
                   </Text>
                 </View>
 
@@ -182,11 +209,27 @@ export function HomeScreen() {
                 </Text>
               </View>
             </View>
+          ) : (
+            <View
+              style={[
+                tw('relative bg-white h-3/4 rounded-xl justify-center items-center'),
+                styles.cardShadow
+              ]}
+            >
+              <Text style={tw('font-bold pb-5')}>
+                No more profiles
+              </Text>
+
+              <Image 
+                style={tw('h-20 w-20')}
+                source={{ uri: 'https://links.papareact.com/6gb' }}
+              />
+            </View>
           )}
         />
       </View>
 
-      <View style={tw('flex flex-row justify-evenly')}>
+      <View style={tw(`flex flex-row justify-evenly ${Platform.OS === 'android' && 'bottom-5'}`)}>
         <TouchableOpacity
           onPress={() => swipeRef.current.swipeLeft()}
           style={tw('items-center justify-center rounded-full w-16 h-16 bg-red-200')}
