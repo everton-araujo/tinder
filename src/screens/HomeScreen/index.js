@@ -27,41 +27,6 @@ import {
 import useAuth from '../../hooks/useAuth';
 import { db } from '../../../firebase';
 
-const DUMMY_DATA = [
-  {
-    id: 1,
-    firstName: 'Ze',
-    lastName: 'Zinho',
-    occupation: 'Padeiro',
-    photoURL: 'https://agenciabrasilia.df.gov.br/wp-conteudo/uploads/2020/09/cat-256x364.jpg',
-    age: '3'
-  },
-  {
-    id: 2,
-    firstName: 'Por',
-    lastName: 'Quinho',
-    occupation: 'Testador de camas',
-    photoURL: 'https://www.dicaspetz.com.br/wp-content/uploads/2020/08/cat-sitter-pet.jpg',
-    age: '6'
-  },
-  {
-    id: 3,
-    firstName: 'Tigrinho',
-    lastName: 'Feroz',
-    occupation: 'Aposentado',
-    photoURL: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToJey2FR2kEDYmQSQZFMwo0ia0s34xMvFxZA&usqp=CAU',
-    age: '5'
-  },
-  {
-    id: 4,
-    firstName: 'Sr',
-    lastName: 'Punzinho',
-    occupation: 'Modelo',
-    photoURL: 'https://media.npr.org/assets/img/2021/08/11/gettyimages-1279899488_wide-f3860ceb0ef19643c335cb34df3fa1de166e2761-s1100-c50.jpg',
-    age: '7'
-  },
-]
-
 export function HomeScreen() {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
