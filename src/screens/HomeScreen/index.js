@@ -18,14 +18,17 @@ import {
   onSnapshot, 
   doc, 
   collection, 
-  setDoc, 
+  setDoc,
+  getDoc,
   query, 
   where, 
-  getDocs 
+  getDocs,
+  serverTimestamp
 } from '@firebase/firestore';
 
 import useAuth from '../../hooks/useAuth';
 import { db } from '../../../firebase';
+import { generateId } from '../../utils/generateId';
 
 export function HomeScreen() {
   const navigation = useNavigation();
@@ -68,10 +71,46 @@ export function HomeScreen() {
     setDoc(doc(db, 'user', user.uid, 'passes', userSwiped.id), userSwiped);
   }
 
-  function handleSwipeRight(cardIndex) {
+  async function handleSwipeRight(cardIndex) {
     if (!profiles[cardIndex]) return;
 
     const userSwiped = profiles[cardIndex];
+    const loggedInProfile = await (
+      await getDoc(doc(db, 'user', user.uid))
+    ).data();
+
+    // Check if the user swiped on you
+    getDoc(doc(db, 'user', userSwiped.id, 'swipes', user.uid)).then(
+      (documentSnapshot) => {
+        if (documentSnapshot.exists()) {
+          // User has matched with you before you matched with then
+          console.log(`You MATCHED with ${userSwiped.displayName}`);
+
+          setDoc(doc(db, 'user', user.uid, 'swipes', userSwiped.id), userSwiped);
+
+          // Create a match
+          setDoc(doc(db, 'matches', generateId(user.uid, userSwiped.id)), {
+            user: {
+              [user.uid]: loggedInProfile,
+              [userSwiped.id]: userSwiped
+            },
+            usersMatched: [user.uid, userSwiped.id],
+            timestamp: serverTimestamp(),
+          });
+
+          navigation.navigate('Match', {
+            loggedInProfile, 
+            userSwiped
+          });
+
+        } else {
+          // User has swiped as first interaction between the two or didn't get swiped on
+          console.log(`You swiped on ${userSwiped.displayName} (${userSwiped.job})`);
+
+          setDoc(doc(db, 'user', user.uid, 'swipes', userSwiped.id), userSwiped)
+        }
+      });
+
     console.log(`You swiped on ${userSwiped.displayName} (${userSwiped.job})`);
     
     setDoc(doc(db, 'user', user.uid, 'swipes', userSwiped.id), userSwiped);
