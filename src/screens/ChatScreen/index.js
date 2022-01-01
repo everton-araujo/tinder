@@ -1,5 +1,8 @@
 import React from 'react';
-import { SafeAreaView, Text, StatusBar, Platform } from 'react-native';
+import { SafeAreaView, StatusBar, Platform } from 'react-native';
+
+import { ChatList } from '../../components/ChatList';
+import { Header } from '../../components/Header';
 
 export function ChatScreen() {
   return (
@@ -10,9 +13,8 @@ export function ChatScreen() {
         paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
       }}
     >
-      <Text>
-        Chat Screen
-      </Text>
+      <Header title='Chat' />
+      <ChatList />
     </SafeAreaView>
-  )
+  );
 }
