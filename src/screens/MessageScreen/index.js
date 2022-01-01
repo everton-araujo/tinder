@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   SafeAreaView, 
   StatusBar, 
@@ -12,9 +12,11 @@ import {
   FlatList,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import tw from 'tailwind-rn';
 
 import { getMatchedUserInfo } from "../../utils/getMatchedUserInfo";
+import { db } from "../../../firebase";
 import useAuth from "../../hooks/useAuth";
 import { Header } from "../../components/Header";
 import { SenderMessage } from '../../components/SenderMessage';
@@ -28,8 +30,28 @@ export function MessageScreen() {
 
   const matchDetails = params;
 
-  function sendMessage() {
+  useEffect(() => 
+    onSnapshot(
+      query(
+        collection(db, 'matches', matchDetails.id, 'messages'), 
+        orderBy('timestamp', 'desc')
+      ), snapshot => setMessages(snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })))
+    ),
+  [matchDetails, db]);
 
+  function sendMessage() {
+    addDoc(collection(db, 'matches', matchDetails.id, 'messages'), {
+      timestamp: serverTimestamp(),
+      userId: user.uid,
+      displayName: user.displayName,
+      photoURL: matchDetails.user[user.uid].photoURL,
+      message: input,
+    });
+
+    setInput('');
   }
 
   return (
@@ -53,10 +75,11 @@ export function MessageScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <FlatList
             data={messages}
+            inverted={-1}
             style={tw('pl-4')}
-            keyExtractor={item => item.id}
+            keyExtractor={(item) => item.id}
             renderItem={({ item: message }) => 
-              messages.userId === useState.uid ? (
+              message.userId === user.uid ? (
                 <SenderMessage key={message.id} message={message} />
               ) : (
                 <ReceiverMessage key={message.id} message={message} />
